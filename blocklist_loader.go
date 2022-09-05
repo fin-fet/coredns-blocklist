@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+// buildBlocklist builds a blocklist, either a tree for subdomain lookup,
+// or a simple map for basic matching.
 func buildBlocklist(options BlocklistOptions) (Blocklist, error) {
 	if options.MatchSubdomains {
 		return NewRadixBlocklist(), nil
@@ -16,6 +18,8 @@ func buildBlocklist(options BlocklistOptions) (Blocklist, error) {
 	}
 }
 
+// loadDomains reloads the blocked domains list,
+// this method is expensive for large lists
 func (blp *BlocklistPlugin) loadDomains() {
 	if blp.options.SourceType == SourceTypeFile {
 		file, err := os.Open(blp.options.Url)
@@ -26,7 +30,6 @@ func (blp *BlocklistPlugin) loadDomains() {
 		defer file.Close()
 
 		// Collect stats, so we can compare previous file access
-
 		stat, err := file.Stat()
 		if err != nil {
 			return
@@ -35,7 +38,6 @@ func (blp *BlocklistPlugin) loadDomains() {
 		size := blp.lastFileSize
 
 		if size == stat.Size() && blp.lastFileTime.Equal(stat.ModTime()) {
-			log.Debug("No file changes")
 			return
 		}
 
@@ -43,15 +45,16 @@ func (blp *BlocklistPlugin) loadDomains() {
 		blp.lastFileTime = stat.ModTime()
 	}
 
-	// Empty blocklist
+	// Empty the blocklist
 	blp.blocklist, _ = buildBlocklist(*blp.options)
 
 	for name := range loadFromSource(*blp.options) {
-		//log.Infof("added domain '%s'", name)
 		blp.blocklist.Add(name)
 	}
 }
 
+// loadFromSource builds a channel to load strings from the location
+// specified in the options.
 func loadFromSource(options BlocklistOptions) chan string {
 	ch := make(chan string)
 

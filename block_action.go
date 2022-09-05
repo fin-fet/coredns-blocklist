@@ -6,10 +6,13 @@ type BlockResponse interface {
 	MakeResponse(w dns.ResponseWriter, r *dns.Msg) (*dns.Msg, error)
 }
 
+// StandardResponse is a response with a standard response code
 type StandardResponse struct {
 	RCode int
 }
 
+// ExtendedResponse is a response that uses an extended response code
+// via EDNS0 EDE (RFC 8914)
 type ExtendedResponse struct {
 	InfoCode  uint16
 	ExtraText string
@@ -36,6 +39,7 @@ func NewExtendedResponse(infoCode uint16, extraText string) *ExtendedResponse {
 
 func (er *ExtendedResponse) MakeResponse(w dns.ResponseWriter, r *dns.Msg) (*dns.Msg, error) {
 	// TODO: Force INET?
+	// OPT must have root name (RFC 6891)
 	opt := new(dns.OPT)
 	opt.Hdr = dns.RR_Header{Name: ".", Rrtype: dns.TypeOPT, Class: dns.ClassINET}
 
@@ -47,6 +51,7 @@ func (er *ExtendedResponse) MakeResponse(w dns.ResponseWriter, r *dns.Msg) (*dns
 	}
 	opt.Option = append(opt.Option, ede)
 
+	// OPT goes into Extra section
 	resp := new(dns.Msg)
 	resp.Extra = append(resp.Extra, opt)
 	resp.SetRcode(r, dns.RcodeRefused)

@@ -65,7 +65,6 @@ func (rbl *RadixBlocklist) Len() int {
 func (rbl *RadixBlocklist) Contains(name string) bool {
 	name = reverseString(name)
 	match, _, ok := rbl.blockTree.LongestPrefix(name)
-	log.Infof("%s, %s, %s", name, match, ok)
 	if !ok {
 		return false
 	}
