@@ -1,0 +1,7 @@
+.:5354 {
+    log
+    blocklist blocklist.txt {
+        response prohibited
+    }
+    forward . 1.1.1.1
+}

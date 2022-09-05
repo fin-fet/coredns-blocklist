@@ -1,0 +1,3 @@
+# Sample blocklist
+blocked1.example.com
+mango.wah
