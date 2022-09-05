@@ -1,0 +1,10 @@
+# Builds 
+build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+*.test
+*.out

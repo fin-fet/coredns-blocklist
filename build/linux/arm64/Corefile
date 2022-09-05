@@ -1,8 +1,0 @@
-.:5354 {
-    log
-    blocklist blocklist.txt {
-        reload 0
-        response prohibited
-    }
-    forward . 1.1.1.1
-}
