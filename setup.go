@@ -64,7 +64,7 @@ func setup(c *caddy.Controller) error {
 			}
 		}
 
-		// Doublecheck its not a directory
+		// Double check its not a directory
 		if stat != nil && stat.IsDir() {
 			return plugin.Error("blocklist", fmt.Errorf("blocklist file '%s' is a directory", options.Url))
 		}
@@ -72,7 +72,11 @@ func setup(c *caddy.Controller) error {
 
 	blp := BlocklistPlugin{options: &options}
 
-	blp.blockResponse = buildResponse(options)
+	blp.blockResponse, err = buildResponse(options)
+	if err != nil {
+		return err
+	}
+
 	blp.loadDomains()
 
 	reloadLoop := reloadLoop(&blp)
@@ -102,7 +106,6 @@ func reloadLoop(blp *BlocklistPlugin) chan bool {
 		for {
 			select {
 			case <-runLoop:
-				log.Info("Tick die")
 				ticker.Stop()
 				return
 			case <-ticker.C:
@@ -167,23 +170,24 @@ func parseArguments(c *caddy.Controller) (BlocklistOptions, error) {
 	return options, nil
 }
 
-func buildResponse(options BlocklistOptions) BlockResponse {
+// buildResponse creates a new DNS response based off the config
+func buildResponse(options BlocklistOptions) (BlockResponse, error) {
 	switch options.ResponseType {
 	case "nxdomain":
-		return NewStandardResponse(dns.RcodeNameError)
+		return NewStandardResponse(dns.RcodeNameError), nil
 	case "refused":
-		return NewStandardResponse(dns.RcodeRefused)
+		return NewStandardResponse(dns.RcodeRefused), nil
 	case "other":
-		return NewExtendedResponse(dns.ExtendedErrorCodeOther, options.ResponseExtra)
+		return NewExtendedResponse(dns.ExtendedErrorCodeOther, options.ResponseExtra), nil
 	case "blocked":
-		return NewExtendedResponse(dns.ExtendedErrorCodeBlocked, options.ResponseExtra)
+		return NewExtendedResponse(dns.ExtendedErrorCodeBlocked, options.ResponseExtra), nil
 	case "censored":
-		return NewExtendedResponse(dns.ExtendedErrorCodeCensored, options.ResponseExtra)
+		return NewExtendedResponse(dns.ExtendedErrorCodeCensored, options.ResponseExtra), nil
 	case "filtered":
-		return NewExtendedResponse(dns.ExtendedErrorCodeFiltered, options.ResponseExtra)
+		return NewExtendedResponse(dns.ExtendedErrorCodeFiltered, options.ResponseExtra), nil
 	case "prohibited":
-		return NewExtendedResponse(dns.ExtendedErrorCodeProhibited, options.ResponseExtra)
+		return NewExtendedResponse(dns.ExtendedErrorCodeProhibited, options.ResponseExtra), nil
 	}
 
-	return nil
+	return nil, plugin.Error("blocklist", fmt.Errorf("response type '%s' invalid", options.ResponseType))
 }
