@@ -1,0 +1,5 @@
+.:5354 {
+    log
+    blocklist blocklist.txt
+    forward . 1.1.1.1
+}
