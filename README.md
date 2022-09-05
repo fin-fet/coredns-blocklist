@@ -48,3 +48,7 @@ EDE options can also have optional text, for example:
     }
 }
 ```
+
+**match_subdomains**  
+Whether or not to match subdomains. For example if the record is `mango.wah`, if set to true
+`sub.mango.wah` would match, but if set to false it would not. Must be true or false, defaults to true.

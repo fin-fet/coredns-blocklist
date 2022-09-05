@@ -3,6 +3,7 @@ module github.com/fin-fet/coredns-blocklist
 go 1.19
 
 require (
+	github.com/armon/go-radix v1.0.0
 	github.com/coredns/caddy v1.1.1
 	github.com/coredns/coredns v1.9.3
 	github.com/miekg/dns v1.1.50

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,11 +17,12 @@ import (
 )
 
 type BlocklistOptions struct {
-	Url           string
-	ReloadPeriod  time.Duration
-	SourceType    int
-	ResponseType  string
-	ResponseExtra string
+	Url             string
+	ReloadPeriod    time.Duration
+	SourceType      int
+	ResponseType    string
+	ResponseExtra   string
+	MatchSubdomains bool
 }
 
 const (
@@ -113,7 +115,7 @@ func reloadLoop(blp *BlocklistPlugin) chan bool {
 }
 
 func parseArguments(c *caddy.Controller) (BlocklistOptions, error) {
-	options := BlocklistOptions{ResponseType: "nxdomain", ResponseExtra: ""}
+	options := BlocklistOptions{ResponseType: "nxdomain", ResponseExtra: "", MatchSubdomains: true}
 
 	for c.Next() {
 		c.Args(&options.Url)
@@ -144,9 +146,20 @@ func parseArguments(c *caddy.Controller) (BlocklistOptions, error) {
 
 				options.ResponseType = c.Val()
 
-				if c.Next() {
+				if c.NextArg() {
 					options.ResponseExtra = c.Val()
 				}
+			case "match_subdomains":
+				if !c.NextArg() {
+					return options, plugin.Error("blocklist", errors.New("match_subdomains requires a value"))
+				}
+
+				parsed, err := strconv.ParseBool(c.Val())
+				if err != nil {
+					return options, plugin.Error("blocklist", fmt.Errorf("invalid option '%s' for match_subdomains, must be true or false", c.Val()))
+				}
+
+				options.MatchSubdomains = parsed
 			}
 		}
 	}

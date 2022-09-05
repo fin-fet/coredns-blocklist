@@ -7,8 +7,12 @@ import (
 	"strings"
 )
 
-func buildDomainList(options BlocklistOptions) (Blocklist, error) {
-	return NewBasicBlocklist(), nil
+func buildBlocklist(options BlocklistOptions) (Blocklist, error) {
+	if options.MatchSubdomains {
+		return NewRadixBlocklist(), nil
+	} else {
+		return NewBasicBlocklist(), nil
+	}
 }
 
 func (blp *BlocklistPlugin) loadDomains() {
@@ -21,6 +25,7 @@ func (blp *BlocklistPlugin) loadDomains() {
 		defer file.Close()
 
 		// Collect stats, so we can compare previous file access
+
 		stat, err := file.Stat()
 		if err != nil {
 			return
@@ -38,7 +43,7 @@ func (blp *BlocklistPlugin) loadDomains() {
 	}
 
 	// Empty blocklist
-	blp.blocklist, _ = buildDomainList(*blp.options)
+	blp.blocklist, _ = buildBlocklist(*blp.options)
 
 	for name := range loadFromSource(*blp.options) {
 		//log.Infof("added domain '%s'", name)
