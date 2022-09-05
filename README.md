@@ -2,12 +2,15 @@
 A plugin to block domains based on a given list. Also logs a warning.
 
 ## Usage
-This plugin can load blockfiles from disk by passing a path.
+This plugin can load blockfiles from disk by passing a path. 
+It can also load from an HTTP URL. Multiple blocklists are allowed per server.
+If the domain is not in the blocklist, it will go to the next plugin.
 
 ```
 . {
     log
     blocklist blocklist.txt
+    blocklist https://raw.githubusercontent.com/blocklistproject/Lists/master/scam.txt
     forward . 1.1.1.1
 }
 ```

@@ -3,6 +3,7 @@ package blocklist
 import (
 	"bufio"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -58,7 +59,6 @@ func loadFromSource(options BlocklistOptions) chan string {
 		defer close(ch)
 
 		// Load the source, depending on type
-		// TODO: Implement HTTP
 		var sourceData io.Reader
 		{
 			if options.SourceType == SourceTypeFile {
@@ -70,6 +70,15 @@ func loadFromSource(options BlocklistOptions) chan string {
 				}
 				defer file.Close()
 				sourceData = file
+			} else if options.SourceType == SourceTypeHttp {
+				log.Infof("loading blocklist URL '%s'", options.Url)
+
+				response, err := http.Get(options.Url)
+				if err != nil {
+					log.Errorf("failed loading HTTP '%s': %v", options.Url, err)
+				}
+				defer response.Body.Close()
+				sourceData = response.Body
 			}
 		}
 
